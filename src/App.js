@@ -34,14 +34,16 @@ function App() {
   
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h2>📅 Routine Filter System</h2>
+    <div className="container mx-auto" style={{ padding: "20px", fontFamily: "Arial" }}>
+      <div className="navbar bg-base-100 shadow-sm">
+  <a className="btn btn-ghost text-2xl font-bold">📅 Routine Filter System</a>
+</div>
 
       {/* Filter Inputs */}
-      <div style={{ marginBottom: "20px" }}>
-        <label>
+      <div className="mt-8 grid grid-cols-5 gap-4 ml-8" style={{ marginBottom: "20px" }}>
+        <label className="flex items-center gap-2">
           Day:
-          <select onChange={(e) => setFilters({ ...filters, day: e.target.value })}>
+          <select className="p-2 shadow w-full max-w-xs menu dropdown-content z-[1] bg-base-100" onChange={(e) => setFilters({ ...filters, day: e.target.value })}>
             <option value="">All</option>
             <option>Sunday</option>
             <option>Monday</option>
@@ -51,17 +53,18 @@ function App() {
           </select>
         </label>
 
-        <label style={{ marginLeft: "10px" }}>
+        <label className="flex items-center gap-2" style={{ marginLeft: "10px" }}>
           Faculty:
           <input
+            className="input w-full max-w-xs"
             placeholder="e.g., Kabir"
             onChange={(e) => setFilters({ ...filters, faculty: e.target.value })}
           />
         </label>
 
-        <label style={{ marginLeft: "10px" }}>
+        <label className="flex items-center gap-2" style={{ marginLeft: "10px" }}>
   Batch:
-  <select onChange={(e) => setFilters({ ...filters, batch: e.target.value })}>
+  <select className="p-2 shadow menu w-full max-w-xs dropdown-content z-[1] bg-base-100" onChange={(e) => setFilters({ ...filters, batch: e.target.value })}>
     <option value="">All</option>
     <option>BICE-2021</option>
     <option>BICE-2022</option>
@@ -73,9 +76,9 @@ function App() {
 </label>
 
 
-<label style={{ marginLeft: "10px" }}>
+<label className="flex items-center gap-2" style={{ marginLeft: "10px" }}>
   Time:
-  <select onChange={(e) => setFilters({ ...filters, time: e.target.value })}>
+  <select className="p-2 shadow menu w-full max-w-xs dropdown-content z-[1] bg-base-100" onChange={(e) => setFilters({ ...filters, time: e.target.value })}>
     <option value="">All</option>
     <option>08:30-10:00</option>
     <option>10:15-11:45</option>
@@ -98,9 +101,9 @@ function App() {
 
       {/* Table Display */}
 <div style={{ overflowX: "auto" }}>
-{loading && <p>Loading...</p>}
+{loading && <p className="loading loading-spinner loading-lg text-center"></p>}
 
-<table border="1" cellPadding="10" style={{ borderCollapse: "collapse", width: "100%" }}>
+<table className="table" border="1" cellPadding="10" style={{ borderCollapse: "collapse", width: "100%" }}>
         <thead>
           <tr>
             <th>Day</th>
