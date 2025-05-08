@@ -22,7 +22,7 @@ function App() {
   
     setLoading(true);
     axios
-      .get(`http://localhost:5000/routines?${query}`)
+      .get(`https://routine-management-server.onrender.com/routines?${query}`)
       .then((res) => setRoutines(res.data))
       .catch((err) => console.error("API error:", err))
       .finally(() => setLoading(false));
