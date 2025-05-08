@@ -42,3 +42,7 @@ tr:hover {
     transform: rotate(360deg);
   }
 }
+
+.mont{
+  font-family: "Montserrat", sans-serif;
+}

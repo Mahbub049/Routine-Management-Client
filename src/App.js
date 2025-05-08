@@ -9,6 +9,28 @@ function App() {
     time: ""
   });
 
+  function convertTo12HourRange(range) {
+    const [start, end] = range.split("-");
+    return `${to12Hour(start)} - ${to12Hour(end)}`;
+  }
+  
+  function to12Hour(time) {
+    const [hourStr, minuteStr] = time.split(":");
+    let hour = parseInt(hourStr);
+    const minutes = minuteStr;
+    const ampm = hour >= 12 ? "PM" : "AM";
+    hour = hour % 12 || 12; // Convert 0 to 12 for 12 AM
+    return `${hour.toString().padStart(2, "0")}:${minutes} ${ampm}`;
+  }  
+
+  const timeOptions = [
+    "08:30-10:00",
+    "10:15-11:45",
+    "12:00-13:30",
+    "14:00-15:30",
+    "15:45-17:15"
+  ];  
+
   const [loading, setLoading] = useState(false);
 
   const [routines, setRoutines] = useState([]);
@@ -32,18 +54,35 @@ function App() {
     a.time_range.localeCompare(b.time_range)
   );
   
+  const groupedRoutines = routines.reduce((acc, routine) => {
+    if (!acc[routine.day]) {
+      acc[routine.day] = [];
+    }
+    acc[routine.day].push(routine);
+    return acc;
+  }, {});
+  
+  const batchColorMap = {
+    "MICE-2024": "bg-indigo-100",
+    "BICE-2021": "bg-red-100",
+    "BICE-2022": "bg-orange-100",
+    "BICE-2023": "bg-amber-100",
+    "BICE-2024": "bg-green-100",
+    "BICE-2025": "bg-blue-100"
+  };
+  
 
   return (
-    <div className="container mx-auto" style={{ padding: "20px", fontFamily: "Arial" }}>
-      <div className="navbar bg-base-100 shadow-sm">
-  <a className="btn btn-ghost text-2xl font-bold">📅 Routine Filter System</a>
+    <div className="container mx-auto mont">
+      <div className="navbar bg-blue-300 rounded-b-lg shadow-sm justify-center">
+  <a className="btn btn-ghost text-2xl font-bold"> Class Routine Management System</a>
 </div>
 
       {/* Filter Inputs */}
-      <div className="mt-8 grid grid-cols-5 gap-4 ml-8" style={{ marginBottom: "20px" }}>
+      <div className="mx-6 mt-8 grid grid-cols-1 lg:grid-cols-5 lg:gap-4 lg:ml-8 mb-8 align-center" >
         <label className="flex items-center gap-2">
           Day:
-          <select className="p-2 shadow w-full max-w-xs menu dropdown-content z-[1] bg-base-100" onChange={(e) => setFilters({ ...filters, day: e.target.value })}>
+          <select value={filters.day} className="p-2 shadow w-full menu dropdown-content z-[1] bg-base-100 mt-4 lg:mt-0" onChange={(e) => setFilters({ ...filters, day: e.target.value })}>
             <option value="">All</option>
             <option>Sunday</option>
             <option>Monday</option>
@@ -53,18 +92,18 @@ function App() {
           </select>
         </label>
 
-        <label className="flex items-center gap-2" style={{ marginLeft: "10px" }}>
+        <label className="flex items-center gap-2 mt-4 lg:mt-0">
           Faculty:
           <input
-            className="input w-full max-w-xs"
+            className="input w-full input-bordered border-gray-200"
             placeholder="e.g., Kabir"
             onChange={(e) => setFilters({ ...filters, faculty: e.target.value })}
           />
         </label>
 
-        <label className="flex items-center gap-2" style={{ marginLeft: "10px" }}>
+        <label className="flex items-center gap-2">
   Batch:
-  <select className="p-2 shadow menu w-full max-w-xs dropdown-content z-[1] bg-base-100" onChange={(e) => setFilters({ ...filters, batch: e.target.value })}>
+  <select value={filters.batch} className="p-2 shadow menu w-full dropdown-content z-[1] bg-base-100 mt-4 lg:mt-0" onChange={(e) => setFilters({ ...filters, batch: e.target.value })}>
     <option value="">All</option>
     <option>BICE-2021</option>
     <option>BICE-2022</option>
@@ -76,20 +115,19 @@ function App() {
 </label>
 
 
-<label className="flex items-center gap-2" style={{ marginLeft: "10px" }}>
+<label className="flex items-center gap-2" >
   Time:
-  <select className="p-2 shadow menu w-full max-w-xs dropdown-content z-[1] bg-base-100" onChange={(e) => setFilters({ ...filters, time: e.target.value })}>
+  <select value={filters.time} className="p-2 shadow menu w-full dropdown-content z-[1] bg-base-100 mt-4 lg:mt-0" onChange={(e) => setFilters({ ...filters, time: e.target.value })}>
     <option value="">All</option>
-    <option>08:30-10:00</option>
-    <option>10:15-11:45</option>
-    <option>12:00-13:30</option>
-    <option>14:00-15:30</option>
-    <option>15:45-17:15</option>
+    <option value="08:30-10:00">08:30AM-10:00AM</option>
+    <option value="10:15-11:45">10:15AM-11:45AM</option>
+    <option value="12:00-13:30">12:00PM-01:30PM</option>
+    <option value="14:00-15:30">02:00PM-03:30PM</option>
+    <option value="15:45-17:15">03:45PM-05:15PM</option>
   </select>
 </label>
 
-        <button
-  style={{ marginLeft: "10px" }}
+        <button className="btn bg-blue-400"
   onClick={() =>
     setFilters({ day: "", faculty: "", batch: "", time: "" })
   }
@@ -100,42 +138,42 @@ function App() {
       </div>
 
       {/* Table Display */}
-<div style={{ overflowX: "auto" }}>
-{loading && <p className="loading loading-spinner loading-lg text-center"></p>}
+<div className="mx-6 lg:mx-0" style={{ overflowX: "auto" }}>
+{loading && <div className="flex justify-center"><p className="loading loading-spinner loading-lg"></p></div>}
 
-<table className="table" border="1" cellPadding="10" style={{ borderCollapse: "collapse", width: "100%" }}>
+{!loading && <table className="table font-medium" border="1" cellPadding="10" style={{ borderCollapse: "collapse", width: "100%" }}>
         <thead>
           <tr>
             <th>Day</th>
             <th>Time</th>
             <th>Room</th>
+            <th>Section</th>
             <th>Course</th>
             <th>Faculty</th>
             <th>Batch</th>
           </tr>
         </thead>
         <tbody>
-  {sortedRoutines.length === 0 ? (
-    <tr>
-      <td colSpan="6" style={{ textAlign: "center" }}>
-        No data found
-      </td>
-    </tr>
-  ) : (
-    sortedRoutines.map((r, i) => (
-      <tr key={i}>
-        <td>{r.day}</td>
-        <td>{r.time_range}</td>
-        <td>{r.room}</td>
-        <td>{r.course_code} - {r.course_title}</td>
-        <td>{r.faculty_name}</td>
-        <td>{r.batch}</td>
+  {Object.entries(groupedRoutines).map(([day, dayRoutines]) =>
+    dayRoutines.map((routine, index) => (
+      <tr key={routine._id || index} className="border-b-2 border-blue-300">
+        {/* Show day only for the first row in the group */}
+        {index === 0 && (
+          <td rowSpan={dayRoutines.length}>{day}</td>
+        )}
+        {/* Skip day cell for the rest */}
+        <td className={batchColorMap[routine.batch] || ""}>{convertTo12HourRange(routine.time_range)}</td>
+        <td className={batchColorMap[routine.batch] || ""}>{routine.room}</td>
+        <td className={batchColorMap[routine.batch] || ""}>{routine.section}</td>
+        <td className={batchColorMap[routine.batch] || ""}>{routine.course_code} - {routine.course_title}</td>
+        <td className={batchColorMap[routine.batch] || ""}>{routine.faculty_name}</td>
+        <td className={batchColorMap[routine.batch] || ""}>{routine.batch}</td>
       </tr>
     ))
   )}
 </tbody>
 
-      </table>
+      </table>}
 </div>
     </div>
   );
