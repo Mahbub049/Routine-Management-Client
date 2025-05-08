@@ -71,11 +71,10 @@ function App() {
     "BICE-2025": "bg-blue-100"
   };
   
-
   return (
     <div className="container mx-auto mont">
       <div className="navbar bg-blue-300 rounded-b-lg shadow-sm justify-center">
-  <a className="btn btn-ghost text-2xl font-bold"> Class Routine Management System</a>
+  <a className="btn btn-ghost lg:text-2xl font-bold"> <p className="">Class Routine Management System</p></a>
 </div>
 
       {/* Filter Inputs */}
@@ -119,11 +118,28 @@ function App() {
   Time:
   <select value={filters.time} className="p-2 shadow menu w-full dropdown-content z-[1] bg-base-100 mt-4 lg:mt-0" onChange={(e) => setFilters({ ...filters, time: e.target.value })}>
     <option value="">All</option>
-    <option value="08:30-10:00">08:30AM-10:00AM</option>
-    <option value="10:15-11:45">10:15AM-11:45AM</option>
-    <option value="12:00-13:30">12:00PM-01:30PM</option>
-    <option value="14:00-15:30">02:00PM-03:30PM</option>
-    <option value="15:45-17:15">03:45PM-05:15PM</option>
+    <option className="bg-indigo-300" value="08:00-10:00">08:00AM-10:00AM</option>
+    <option className="bg-indigo-300" value="08:00-11:00">08:00AM-11:00AM</option>
+    <option className="bg-green-500" value="08:30-10:00">08:30AM-10:00AM</option>
+    <option className="bg-indigo-300" value="08:30-11:30">08:30AM-11:30AM</option>
+    <option className="bg-indigo-300" value="10:00-13:00">10:00AM-01:00PM</option>
+    <option  className="bg-green-500" value="10:15-11:45">10:15AM-11:45AM</option>
+    <option className="bg-indigo-300" value="10:10-13:30">10:10AM-01:30PM</option>
+    <option className="bg-indigo-300" value="10:10-13:45">10:10AM-01:45PM</option>
+    <option className="bg-indigo-300" value="11:00-14:00">11:00AM-02:00PM</option>
+    <option  className="bg-green-500" value="12:00-13:30">12:00PM-01:30PM</option>
+    <option className="bg-indigo-300" value="12:00-14:00">12:00PM-02:00PM</option>
+    <option className="bg-indigo-300" value="12:00-15:00">12:00PM-03:00PM</option>
+    <option className="bg-indigo-300" value="12:30-15:30">12:30PM-03:30PM</option>
+    <option className="bg-indigo-300" value="13:00-15:50">01:00PM-03:50PM</option>
+    <option  className="bg-green-500" value="14:00-15:30">02:00PM-03:30PM</option>
+    <option className="bg-indigo-300" value="14:00-16:00">02:00PM-04:00PM</option>
+    <option className="bg-indigo-300" value="14:00-17:00">02:00PM-05:00PM</option>
+    <option className="bg-indigo-300" value="14:30-17:00">02:30PM-05:00PM</option>
+    <option className="bg-indigo-300" value="14:30-17:30">02:30PM-05:30PM</option>
+    <option className="bg-indigo-300" value="15:30-17:30">03:30PM-04:30PM</option>
+    <option className="bg-green-500" value="15:45-17:15">03:45PM-05:15PM</option>
+    <option className="bg-indigo-300" value="16:00-17:30">04:00PM-05:30PM</option>
   </select>
 </label>
 
