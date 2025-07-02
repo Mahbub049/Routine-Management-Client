@@ -57,6 +57,9 @@ function PublicPage() {
     "BICE-2025": "bg-blue-100"
   };
 
+  const dayOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"];
+
+
   return (
     <div className="container mx-auto mont">
       {/* Navbar */}
@@ -143,64 +146,67 @@ function PublicPage() {
 
       {/* Routine Table */}
       <div className="mx-6 print:mx-2">
-        {Object.entries(groupedData).map(([day, rooms]) => (
-          <div key={day} className="mb-12 break-after-page print:break-after-page">
-            <h2 className="text-2xl font-semibold text-center text-slate-700 mb-5 border-b pb-2">{day}</h2>
-            <div className="overflow-x-auto print:overflow-visible">
-              <div className="min-w-[1000px] grid grid-cols-[80px_repeat(5,1fr)] border border-slate-300 rounded-lg shadow-sm text-sm print:text-xs">
-                {/* Time Headers */}
-                <div className="bg-slate-200 font-bold text-center p-2 border-r border-b border-slate-300">
-                  Room
-                </div>
-                {timeOptions.map((slot) => (
-                  <div
-                    key={slot}
-                    className="bg-slate-200 font-bold text-center p-2 border-r border-b border-slate-300"
-                  >
-                    {convertTo12HourRange(slot)}
-                  </div>
-                ))}
+        {Object.entries(groupedData)
+          .sort(([a], [b]) => dayOrder.indexOf(a) - dayOrder.indexOf(b))
+          .map(([day, rooms]) => (
 
-                {/* Rows per room */}
-                {Object.entries(rooms)
-                  .sort(([a], [b]) => a.localeCompare(b))
-                  .map(([room, slots]) => (
-                    <React.Fragment key={room}>
-                      <div className="text-center border-t border-r border-slate-300 bg-slate-100 font-medium p-2">
-                        {room}
-                      </div>
-                      {timeOptions.map((slot) => (
-                        <div
-                          key={slot}
-                          className="border-t border-r border-slate-300 p-1 space-y-1 align-top"
-                        >
-                          {(slots[slot] || []).map((r, i) => (
-                            <div
-                              key={i}
-                              className={`rounded p-1 shadow-sm transition duration-150 hover:shadow-md ${batchColorMap[r.batch] || "bg-white"}`}
-                            >
-                              <div className="font-semibold text-slate-800">
-                                {r.course_code}-{r.section}
-                                {r.is_lab && r.lab_fixed_time_range ? (
-                                  <span className="block text-xs text-gray-600 mt-0.5">
-                                    ({r.lab_fixed_time_range})
-                                  </span>
-                                ) : null}
-                              </div>
-                              <div className="text-slate-700 text-sm">{r.faculty_name}</div>
-                              <div className="italic text-right text-xs text-slate-600">
-                                {r.batch}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-                    </React.Fragment>
+            <div key={day} className="mb-12 break-after-page print:break-after-page">
+              <h2 className="text-2xl font-semibold text-center text-slate-700 mb-5 border-b pb-2">{day}</h2>
+              <div className="overflow-x-auto print:overflow-visible">
+                <div className="min-w-[1000px] grid grid-cols-[80px_repeat(5,1fr)] border border-slate-300 rounded-lg shadow-sm text-sm print:text-xs">
+                  {/* Time Headers */}
+                  <div className="bg-slate-200 font-bold text-center p-2 border-r border-b border-slate-300">
+                    Room
+                  </div>
+                  {timeOptions.map((slot) => (
+                    <div
+                      key={slot}
+                      className="bg-slate-200 font-bold text-center p-2 border-r border-b border-slate-300"
+                    >
+                      {convertTo12HourRange(slot)}
+                    </div>
                   ))}
+
+                  {/* Rows per room */}
+                  {Object.entries(rooms)
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([room, slots]) => (
+                      <React.Fragment key={room}>
+                        <div className="text-center border-t border-r border-slate-300 bg-slate-100 font-medium p-2">
+                          {room}
+                        </div>
+                        {timeOptions.map((slot) => (
+                          <div
+                            key={slot}
+                            className="border-t border-r border-slate-300 p-1 space-y-1 align-top"
+                          >
+                            {(slots[slot] || []).map((r, i) => (
+                              <div
+                                key={i}
+                                className={`rounded p-1 shadow-sm transition duration-150 hover:shadow-md ${batchColorMap[r.batch] || "bg-white"}`}
+                              >
+                                <div className="font-semibold text-slate-800">
+                                  {r.course_code}-{r.section}
+                                  {r.is_lab && r.lab_fixed_time_range ? (
+                                    <span className="block text-xs text-gray-600 mt-0.5">
+                                      ({r.lab_fixed_time_range})
+                                    </span>
+                                  ) : null}
+                                </div>
+                                <div className="text-slate-700 text-sm">{r.faculty_name}</div>
+                                <div className="italic text-right text-xs text-slate-600">
+                                  {r.batch}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
 
     </div>
