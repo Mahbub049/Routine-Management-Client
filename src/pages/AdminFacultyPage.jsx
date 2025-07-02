@@ -16,7 +16,7 @@ function AdminFacultyPage() {
     const [editingId, setEditingId] = useState(null);
 
     const fetchFaculties = async () => {
-        const res = await axios.get("http://localhost:5000/faculties");
+        const res = await axios.get("https://routine-management-server.onrender.com/faculties");
         setFaculties(res.data);
     };
 
@@ -39,10 +39,10 @@ function AdminFacultyPage() {
 
         try {
             if (editingId) {
-                await axios.put(`http://localhost:5000/faculties/${editingId}`, form);
+                await axios.put(`https://routine-management-server.onrender.com/faculties/${editingId}`, form);
                 alert("Faculty updated");
             } else {
-                await axios.post("http://localhost:5000/faculties", form);
+                await axios.post("https://routine-management-server.onrender.com/faculties", form);
                 alert("Faculty added");
             }
             setForm(initialForm);
@@ -61,7 +61,7 @@ function AdminFacultyPage() {
 
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure to delete this faculty?")) {
-            await axios.delete(`http://localhost:5000/faculties/${id}`);
+            await axios.delete(`https://routine-management-server.onrender.com/faculties/${id}`);
             fetchFaculties();
         }
     };

@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "http://localhost:5000", // backend port
+  baseURL: "https://routine-management-server.onrender.com", // backend port
 });
 
 export default instance;

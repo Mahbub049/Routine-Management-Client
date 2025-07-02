@@ -38,7 +38,7 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
     }, [editingData]);
 
     useEffect(() => {
-        axios.get("http://localhost:5000/faculties")
+        axios.get("https://routine-management-server.onrender.com/faculties")
             .then((res) => {
                 const filtered = res.data.filter(fac => fac.type === facultyType);
                 setFacultyOptions(filtered);
@@ -83,10 +83,10 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
             if (editingData && editingData._id) {
                 console.log("Submitting formData", formData);
 
-                await axios.put(`http://localhost:5000/routines/${editingData._id}`, formData);
+                await axios.put(`https://routine-management-server.onrender.com/routines/${editingData._id}`, formData);
                 alert("Routine updated successfully!");
             } else {
-                await axios.post("http://localhost:5000/routines", formData);
+                await axios.post("https://routine-management-server.onrender.com/routines", formData);
                 alert("Routine added successfully!");
             }
 

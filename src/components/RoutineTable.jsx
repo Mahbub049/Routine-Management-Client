@@ -12,7 +12,7 @@ function RoutineTable({ onEdit, refreshKey }) {
 
     const fetchRoutines = async () => {
         try {
-            const res = await axios.get("http://localhost:5000/routines");
+            const res = await axios.get("https://routine-management-server.onrender.com/routines");
             setRoutines(res.data);
         } catch (err) {
             console.error("Failed to fetch routines:", err);
@@ -23,7 +23,7 @@ function RoutineTable({ onEdit, refreshKey }) {
         if (!window.confirm("Are you sure you want to delete this routine?")) return;
 
         try {
-            await axios.delete(`http://localhost:5000/routines/${id}`);
+            await axios.delete(`https://routine-management-server.onrender.com/routines/${id}`);
             alert("Routine deleted successfully.");
             fetchRoutines(); // Refresh table
         } catch (err) {
