@@ -7,3 +7,34 @@
 body {
     font-family: 'Montserrat', sans-serif;
   }
+
+ @media print {
+  body {
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .routine-grid {
+    width: 100% !important;
+  }
+
+  .routine-day {
+    page-break-after: always;
+  }
+
+  .routine-cell {
+    padding: 4px !important;
+    border: 1px solid #000 !important;
+  }
+
+  .routine-head {
+    background-color: #e5e7eb !important;
+    font-weight: bold !important;
+  }
+}
