@@ -20,6 +20,10 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
     const [formData, setFormData] = useState(initialState);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const [facultyType, setFacultyType] = useState("Internal");
+    const [facultyOptions, setFacultyOptions] = useState([]);
+
+
 
     useEffect(() => {
         if (editingData) {
@@ -32,6 +36,16 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
             setFormData(initialState);
         }
     }, [editingData]);
+
+    useEffect(() => {
+        axios.get("http://localhost:5000/faculties")
+            .then((res) => {
+                const filtered = res.data.filter(fac => fac.type === facultyType);
+                setFacultyOptions(filtered);
+            })
+            .catch((err) => console.error("Failed to fetch faculties", err));
+    }, [facultyType]);
+
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -91,17 +105,14 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
 
     return (
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Day, Time, Room, Section */}
             {[
                 { label: "Day", name: "day", type: "select", options: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"] },
                 { label: "Time Range", name: "time_range", type: "select", options: ["08:30-10:00", "10:15-11:45", "12:00-13:30", "14:00-15:30", "15:45-17:15"] },
-                { label: "Room", name: "room", type: "select", options: ["LAB1", "LAB2", "301", "302", "303", "304", "FBS 103"] },
+                { label: "Room", name: "room", type: "select", options: ["301", "302", "303", "304", "LAB1", "LAB2", "FBS 103", "MIST"] },
                 { label: "Section", name: "section", type: "select", options: ["A", "B"] },
                 { label: "Course Code", name: "course_code" },
                 { label: "Course Title", name: "course_title" },
-                { label: "Faculty Name", name: "faculty_name" },
-                { label: "Faculty Designation", name: "faculty_designation", type: "select", options: ["Lecturer", "Assistant Professor", "Associate Professor", "Professor", "Colonel"] },
-                { label: "Faculty Department", name: "faculty_department" },
-                { label: "Batch", name: "batch", type: "select", options: ["BICE-2021", "BICE-2022", "BICE-2023", "BICE-2024", "BICE-2025", "MICE-2024"] },
             ].map(({ label, name, type = "text", options }) => (
                 <label key={name} className="flex flex-col">
                     {label}:
@@ -129,7 +140,84 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 </label>
             ))}
 
-            {/* Is Lab checkbox */}
+            {/* Faculty Type */}
+            <label className="flex flex-col">
+                Faculty Type:
+                <select
+                    value={facultyType}
+                    onChange={(e) => setFacultyType(e.target.value)}
+                    className="border p-2 rounded-md"
+                >
+                    <option value="Internal">Internal</option>
+                    <option value="External">External</option>
+                </select>
+            </label>
+
+            {/* Faculty Name - from backend */}
+            <label className="flex flex-col">
+                Faculty Name:
+                <select
+                    name="faculty_name"
+                    value={formData.faculty_name}
+                    onChange={(e) => {
+                        const selectedName = e.target.value;
+                        setFormData((prev) => ({ ...prev, faculty_name: selectedName }));
+                        const selected = facultyOptions.find((f) => f.name === selectedName);
+                        if (selected) {
+                            setFormData((prev) => ({
+                                ...prev,
+                                faculty_designation: selected.designation || "",
+                                faculty_department: selected.department || "",
+                            }));
+                        }
+                    }}
+                    className="border p-2 rounded-md"
+                >
+                    <option value="">Select Faculty</option>
+                    {facultyOptions.map((f) => (
+                        <option key={f._id} value={f.name}>{f.name}</option>
+                    ))}
+                </select>
+            </label>
+
+            {/* Designation & Department (can be auto-filled but editable) */}
+            <label className="flex flex-col">
+                Faculty Designation:
+                <input
+                    name="faculty_designation"
+                    value={formData.faculty_designation}
+                    onChange={handleChange}
+                    className="border p-2 rounded-md"
+                />
+            </label>
+
+            <label className="flex flex-col">
+                Faculty Department:
+                <input
+                    name="faculty_department"
+                    value={formData.faculty_department}
+                    onChange={handleChange}
+                    className="border p-2 rounded-md"
+                />
+            </label>
+
+            {/* Batch */}
+            <label className="flex flex-col">
+                Batch:
+                <select
+                    name="batch"
+                    value={formData.batch}
+                    onChange={handleChange}
+                    className="border p-2 rounded-md"
+                >
+                    <option value="">Select</option>
+                    {["BICE-2021", "BICE-2022", "BICE-2023", "BICE-2024", "BICE-2025", "MICE-2024"].map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                </select>
+            </label>
+
+            {/* Is Lab */}
             <label className="flex items-center gap-2 col-span-1 md:col-span-2">
                 <input
                     type="checkbox"
@@ -140,7 +228,7 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 Is Lab?
             </label>
 
-            {/* Conditionally show lab time range */}
+            {/* Lab Time Range */}
             {formData.is_lab && (
                 <label className="flex flex-col col-span-1 md:col-span-2">
                     Lab Fixed Time Range:
@@ -155,7 +243,7 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 </label>
             )}
 
-            {/* Buttons */}
+            {/* Submit + Cancel */}
             <div className="col-span-1 md:col-span-2 flex justify-between gap-4">
                 <button
                     type="submit"
@@ -179,6 +267,7 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 )}
             </div>
         </form>
+
 
     );
 }
