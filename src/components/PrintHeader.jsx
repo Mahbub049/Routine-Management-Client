@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import logo from "../assets/bup-logo.jpg";
 import axios from "../api/axiosInstance";
 
 function PrintHeader() {
@@ -9,9 +8,9 @@ function PrintHeader() {
   useEffect(() => {
     axios.get("/public-settings").then(res => {
       setSettings(res.data || {});
+      setBatches(res.data.batches || []);
     });
   }, []);
-
 
   return (
     <div className="hidden print:block text-center mb-6 px-6">
@@ -28,8 +27,8 @@ function PrintHeader() {
         Class Routine ({settings.term_type || "Semester"}: {settings.semester?.start_month} {settings.semester?.start_year} - {settings.semester?.end_month} {settings.semester?.end_year})
       </h3>
 
-
-      <div className="grid grid-cols-6 border border-black text-black text-sm font-semibold">
+      {/* ✅ Colored Batch Row */}
+      <div className={`grid grid-cols-${batches.length} border border-black text-black text-sm font-semibold`}>
         {batches.map((batch, idx) => (
           <div key={idx} className={`py-1 border-r border-black bg-${getBgColor(idx)}-100`}>
             {batch}
