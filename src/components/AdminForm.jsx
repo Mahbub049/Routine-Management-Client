@@ -27,6 +27,12 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
     const [facultyType2, setFacultyType2] = useState("Internal");
     const [facultyOptions2, setFacultyOptions2] = useState([]);
 
+    const [settings, setSettings] = useState({
+        time_ranges: [],
+        classrooms: [],
+        sections: [],
+    });
+
 
     useEffect(() => {
         if (editingData) {
@@ -57,6 +63,19 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
             })
             .catch((err) => console.error("Failed to fetch faculty B list", err));
     }, [facultyType2]);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const res = await axios.get("/settings"); // 🔐 Requires JWT
+                setSettings(res.data); // Save to state
+            } catch (err) {
+                console.error("Failed to fetch settings", err);
+            }
+        };
+
+        fetchSettings();
+    }, []);
 
 
     const handleChange = (e) => {
@@ -117,14 +136,28 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
         }
     };
 
+    const formatTo12Hour = (range) => {
+        const [start, end] = range.split("-");
+        return `${convert(start)} - ${convert(end)}`;
+    };
+
+    const convert = (time) => {
+        const [hourStr, minuteStr] = time.split(":");
+        let hour = parseInt(hourStr, 10);
+        const suffix = hour >= 12 ? "PM" : "AM";
+        hour = hour % 12 || 12;
+        return `${hour.toString().padStart(2, '0')}:${minuteStr}${suffix}`;
+    };
+
+
     return (
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Day, Time, Room, Section, Course Info */}
             {[
                 { label: "Day", name: "day", type: "select", options: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"] },
-                { label: "Time Range", name: "time_range", type: "select", options: ["08:30-10:00", "10:15-11:45", "12:00-13:30", "14:00-15:30", "15:45-17:15"] },
-                { label: "Room", name: "room", type: "select", options: ["301", "302", "303", "304", "LAB1", "LAB2", "FBS 103", "MIST"] },
-                { label: "Section", name: "section", type: "select", options: ["A", "B"] },
+                { label: "Time Range", name: "time_range", type: "select", options: settings.time_ranges },
+                { label: "Room", name: "room", type: "select", options: settings.classrooms },
+                { label: "Section", name: "section", type: "select", options: settings.sections },
                 { label: "Course Code", name: "course_code" },
                 { label: "Course Title", name: "course_title" },
             ].map(({ label, name, type = "text", options }) => (
@@ -138,10 +171,16 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                             className="border p-2 rounded-md"
                         >
                             <option value="">Select</option>
-                            {options.map((opt) => (
-                                <option key={opt} value={opt}>{opt}</option>
-                            ))}
+                            {label === "Time Range"
+                                ? options.map((opt) => (
+                                    <option key={opt} value={opt}>{formatTo12Hour(opt)}</option>
+                                ))
+                                : options.map((opt) => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                ))
+                            }
                         </select>
+
                     ) : (
                         <input
                             type={type}

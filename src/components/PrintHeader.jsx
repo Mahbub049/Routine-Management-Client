@@ -7,7 +7,7 @@ function PrintHeader() {
   const [batches, setBatches] = useState([]);
 
   useEffect(() => {
-    axios.get("/settings").then(res => {
+    axios.get("/public-settings").then(res => {
       setSemester(res.data.semester || {});
       setBatches(res.data.batches || []);
     });

@@ -229,7 +229,9 @@ function PublicPage() {
             </div>
           ))}
       </div>
-      <Footer />
+      <div className="print:hidden">
+        <Footer />
+      </div>
     </div>
   );
 }
