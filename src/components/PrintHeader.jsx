@@ -12,6 +12,15 @@ function PrintHeader() {
     });
   }, []);
 
+  const bgColorClasses = [
+    "bg-indigo-100",
+    "bg-red-100",
+    "bg-orange-100",
+    "bg-amber-100",
+    "bg-green-100",
+    "bg-blue-100",
+  ];
+
   return (
     <div className="hidden print:block text-center mb-6 px-6">
       {settings.logo_url && (
@@ -28,13 +37,21 @@ function PrintHeader() {
       </h3>
 
       {/* ✅ Colored Batch Row */}
-      <div className={`grid grid-cols-${batches.length} border border-black text-black text-sm font-semibold`}>
+      <div
+        className={`grid border border-black text-black text-sm font-semibold`}
+        style={{ gridTemplateColumns: `repeat(${batches.length}, minmax(0, 1fr))` }}
+      >
         {batches.map((batch, idx) => (
-          <div key={idx} className={`py-1 border-r border-black bg-${getBgColor(idx)}-100`}>
+          <div
+            key={idx}
+            className={`py-1 border-r border-black text-center ${bgColorClasses[idx % bgColorClasses.length]}`}
+          >
             {batch}
           </div>
         ))}
       </div>
+
+
     </div>
   );
 }
