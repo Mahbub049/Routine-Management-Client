@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "./api/axiosInstance";
 import PrintHeader from "./components/PrintHeader"; // adjust path if needed
+import Footer from "./components/Footer";
 
 
 function PublicPage() {
@@ -50,13 +51,13 @@ function PublicPage() {
     groupedData[r.day][r.room][r.time_range].push(r);
   }
 
-//   const PrintHeader = () => (
-//   <div className="print-header print:block hidden text-center mb-4">
-//     <div style={{ fontSize: "16px", fontWeight: "bold" }}>BANGLADESH UNIVERSITY OF PROFESSIONALS (BUP)</div>
-//     <div style={{ fontSize: "14px" }}>DEPARTMENT OF ICT</div>
-//     <div style={{ fontSize: "13px" }}>CLASS ROUTINE (JULY–DECEMBER 2025)</div>
-//   </div>
-// );
+  //   const PrintHeader = () => (
+  //   <div className="print-header print:block hidden text-center mb-4">
+  //     <div style={{ fontSize: "16px", fontWeight: "bold" }}>BANGLADESH UNIVERSITY OF PROFESSIONALS (BUP)</div>
+  //     <div style={{ fontSize: "14px" }}>DEPARTMENT OF ICT</div>
+  //     <div style={{ fontSize: "13px" }}>CLASS ROUTINE (JULY–DECEMBER 2025)</div>
+  //   </div>
+  // );
 
 
   const batchColorMap = {
@@ -228,7 +229,7 @@ function PublicPage() {
             </div>
           ))}
       </div>
-
+      <Footer />
     </div>
   );
 }

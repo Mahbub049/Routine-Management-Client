@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import AdminForm from "../components/AdminForm";
 import RoutineTable from "../components/RoutineTable";
-import { Link } from "react-router-dom";
-import AdminFacultyPage from "./AdminFacultyPage"; // Adjust path if needed
-
+import AdminFacultyPage from "./AdminFacultyPage";
+import SettingsPage from "./SettingsPage";
+import Sidebar from "../components/Sidebar";
+import axios from "../api/axiosInstance";
+import Swal from "sweetalert2";
 
 function AdminPage() {
     const [activeTab, setActiveTab] = useState("add");
-    const [editingRoutine, setEditingRoutine] = useState(null); // ← NEW
+    const [editingRoutine, setEditingRoutine] = useState(null);
 
     const handleEdit = (routine) => {
         setEditingRoutine(routine);
@@ -16,64 +18,83 @@ function AdminPage() {
 
     const clearEditing = () => setEditingRoutine(null);
 
+    const handleLogout = () => {
+        localStorage.removeItem("adminToken");
+        window.location.href = "/login";
+    };
+
+    const handleSemesterEnd = async () => {
+        const result = await Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this! All routine data will be deleted.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, end semester!"
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const token = localStorage.getItem("adminToken");
+                await axios.delete("/routines", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                await Swal.fire({
+                    title: "Deleted!",
+                    text: "All routines have been deleted. Semester ended.",
+                    icon: "success",
+                });
+
+                window.location.reload();
+            } catch (err) {
+                console.error(err);
+                Swal.fire({
+                    title: "Error!",
+                    text: "Failed to end semester.",
+                    icon: "error",
+                });
+            }
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-gray-100 p-6">
-            <h1 className="text-3xl font-bold text-center text-slate-700 mb-6">Admin Panel</h1>
+        <div className="flex bg-slate-100 min-h-screen">
+            <Sidebar
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                onLogout={handleLogout}
+                onSemesterEnd={handleSemesterEnd}
+            />
 
-            {/* Tabs */}
-            <div className="flex justify-center gap-4 mb-8">
-                <button
-                    onClick={() => { setActiveTab("add"); clearEditing(); }}
-                    className={`px-6 py-2 rounded-md text-white font-medium transition ${activeTab === "add" ? "bg-indigo-600" : "bg-slate-500"}`}
-                >
-                    ➕ Add Routine
-                </button>
-                <button
-                    onClick={() => setActiveTab("view")}
-                    className={`px-6 py-2 rounded-md text-white font-medium transition ${activeTab === "view" ? "bg-indigo-600" : "bg-slate-500"}`}
-                >
-                    📋 View All Routines
-                </button>
-                <button
-                    onClick={() => setActiveTab("faculties")}
-                    className={`px-6 py-2 rounded-md text-white font-medium transition ${activeTab === "faculties" ? "bg-indigo-600" : "bg-slate-500"}`}
-                >
-                    🧑‍🏫 Manage Faculties
-                </button>
+            <main className="flex-1 p-8">
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    {activeTab === "add" && (
+                        <>
+                            <h2 className="text-2xl font-semibold text-slate-700 mb-4">
+                                {editingRoutine ? "Edit Routine" : "Add New Routine"}
+                            </h2>
+                            <AdminForm
+                                onSuccess={() => setActiveTab("view")}
+                                editingData={editingRoutine}
+                                clearEdit={clearEditing}
+                            />
+                        </>
+                    )}
 
+                    {activeTab === "view" && (
+                        <>
+                            <h2 className="text-2xl font-semibold text-slate-700 mb-4">All Routines</h2>
+                            <RoutineTable onEdit={handleEdit} refreshKey={editingRoutine ? editingRoutine._id : "new"} />
+                        </>
+                    )}
 
-            </div>
+                    {activeTab === "faculties" && <AdminFacultyPage />}
 
-            {/* Content Area */}
-            <div className="bg-white p-6 rounded-md shadow-md max-w-7xl mx-auto">
-                {activeTab === "add" && (
-                    <>
-                        <h2 className="text-xl font-semibold text-slate-700 mb-4">
-                            {editingRoutine ? "Edit Routine" : "Add New Routine"}
-                        </h2>
-                        <AdminForm
-                            onSuccess={() => setActiveTab("view")}
-                            editingData={editingRoutine}
-                            clearEdit={clearEditing}
-                        />
-                    </>
-                )}
-
-                {activeTab === "view" && (
-                    <>
-                        <h2 className="text-xl font-semibold text-slate-700 mb-4">All Routines</h2>
-                        <RoutineTable onEdit={handleEdit} refreshKey={editingRoutine ? editingRoutine._id : "new"} />
-                    </>
-                )}
-
-                {activeTab === "faculties" && (
-                    <>
-                        {/* <h2 className="text-xl font-semibold text-slate-700 mb-4">Manage Faculties</h2> */}
-                        <AdminFacultyPage />
-                    </>
-                )}
-
-            </div>
+                    {activeTab === "settings" && <SettingsPage />}
+                </div>
+            </main>
         </div>
     );
 }
