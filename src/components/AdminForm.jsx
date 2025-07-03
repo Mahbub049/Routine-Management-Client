@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../api/axiosInstance";
 
 const initialState = {
     day: "",
@@ -38,7 +38,7 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
     }, [editingData]);
 
     useEffect(() => {
-        axios.get("https://routine-management-server.onrender.com/faculties")
+        axios.get("/faculties")
             .then((res) => {
                 const filtered = res.data.filter(fac => fac.type === facultyType);
                 setFacultyOptions(filtered);
@@ -83,10 +83,10 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
             if (editingData && editingData._id) {
                 console.log("Submitting formData", formData);
 
-                await axios.put(`https://routine-management-server.onrender.com/routines/${editingData._id}`, formData);
+                await axios.put(`/routines/${editingData._id}`, formData);
                 alert("Routine updated successfully!");
             } else {
-                await axios.post("https://routine-management-server.onrender.com/routines", formData);
+                await axios.post("/routines", formData);
                 alert("Routine added successfully!");
             }
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "./api/axiosInstance";
 
 function PublicPage() {
   const [filters, setFilters] = useState({ day: "", faculty: "", batch: "", time: "" });
@@ -34,7 +34,7 @@ function PublicPage() {
       .join("&");
 
     setLoading(true);
-    axios.get(`https://routine-management-server.onrender.com/routines?${query}`)
+    axios.get(`/routines?${query}`)
       .then((res) => setRoutines(res.data))
       .catch((err) => console.error("API error:", err))
       .finally(() => setLoading(false));
@@ -193,6 +193,7 @@ function PublicPage() {
                                     </span>
                                   ) : null}
                                 </div>
+                                <div className="text-gray-500 font-bold text-sm">{r.course_title}</div>
                                 <div className="text-slate-700 text-sm">{r.faculty_name}</div>
                                 <div className="italic text-right text-xs text-slate-600">
                                   {r.batch}

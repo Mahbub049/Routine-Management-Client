@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../api/axiosInstance";
 
 const initialForm = {
     name: "",
@@ -16,7 +16,7 @@ function AdminFacultyPage() {
     const [editingId, setEditingId] = useState(null);
 
     const fetchFaculties = async () => {
-        const res = await axios.get("https://routine-management-server.onrender.com/faculties");
+        const res = await axios.get("/faculties");
         setFaculties(res.data);
     };
 
@@ -39,10 +39,10 @@ function AdminFacultyPage() {
 
         try {
             if (editingId) {
-                await axios.put(`https://routine-management-server.onrender.com/faculties/${editingId}`, form);
+                await axios.put(`/faculties/${editingId}`, form);
                 alert("Faculty updated");
             } else {
-                await axios.post("https://routine-management-server.onrender.com/faculties", form);
+                await axios.post("/faculties", form);
                 alert("Faculty added");
             }
             setForm(initialForm);
@@ -61,7 +61,7 @@ function AdminFacultyPage() {
 
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure to delete this faculty?")) {
-            await axios.delete(`https://routine-management-server.onrender.com/faculties/${id}`);
+            await axios.delete(`/faculties/${id}`);
             fetchFaculties();
         }
     };
