@@ -194,7 +194,12 @@ function PublicPage() {
                                   ) : null}
                                 </div>
                                 <div className="text-gray-500 font-bold text-sm">{r.course_title}</div>
-                                <div className="text-slate-700 text-sm">{r.faculty_name}</div>
+                                <div className="text-slate-700 text-sm">
+                                  {r.is_lab && r.faculty_name_1 && r.faculty_name_2
+                                    ? `${r.faculty_name_1} + ${r.faculty_name_2}`
+                                    : r.faculty_name}
+                                </div>
+
                                 <div className="italic text-right text-xs text-slate-600">
                                   {r.batch}
                                 </div>

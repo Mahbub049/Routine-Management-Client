@@ -14,15 +14,18 @@ const initialState = {
     batch: "",
     is_lab: false,
     lab_fixed_time_range: "",
+    faculty_name_2: "",
+    faculty_designation_2: "",
+    faculty_department_2: "",
 };
 
 function AdminForm({ onSuccess, editingData, clearEdit }) {
     const [formData, setFormData] = useState(initialState);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
     const [facultyType, setFacultyType] = useState("Internal");
     const [facultyOptions, setFacultyOptions] = useState([]);
-
+    const [facultyType2, setFacultyType2] = useState("Internal");
+    const [facultyOptions2, setFacultyOptions2] = useState([]);
 
 
     useEffect(() => {
@@ -30,7 +33,7 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
             setFormData({
                 ...initialState,
                 ...editingData,
-                _id: editingData._id, // 🔥 ENSURE _id is preserved for update
+                _id: editingData._id,
             });
         } else {
             setFormData(initialState);
@@ -45,6 +48,15 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
             })
             .catch((err) => console.error("Failed to fetch faculties", err));
     }, [facultyType]);
+
+    useEffect(() => {
+        axios.get("/faculties")
+            .then((res) => {
+                const filtered = res.data.filter(f => f.type === facultyType2);
+                setFacultyOptions2(filtered);
+            })
+            .catch((err) => console.error("Failed to fetch faculty B list", err));
+    }, [facultyType2]);
 
 
     const handleChange = (e) => {
@@ -72,17 +84,21 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
             }
         }
 
-        if (formData.is_lab && !formData.lab_fixed_time_range) {
-            alert("Please specify lab fixed time range.");
-            return;
+        if (formData.is_lab) {
+            if (!formData.lab_fixed_time_range) {
+                alert("Please specify lab fixed time range.");
+                return;
+            }
+            if (!formData.faculty_name_2) {
+                alert("Please select Faculty B for lab course.");
+                return;
+            }
         }
 
         try {
-            setIsSubmitting(true); // START submit state
+            setIsSubmitting(true);
 
             if (editingData && editingData._id) {
-                console.log("Submitting formData", formData);
-
                 await axios.put(`/routines/${editingData._id}`, formData);
                 alert("Routine updated successfully!");
             } else {
@@ -97,15 +113,13 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
             alert("Submission failed. Please try again.");
             console.error(err);
         } finally {
-            setIsSubmitting(false); // END submit state
+            setIsSubmitting(false);
         }
     };
 
-
-
     return (
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Day, Time, Room, Section */}
+            {/* Day, Time, Room, Section, Course Info */}
             {[
                 { label: "Day", name: "day", type: "select", options: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"] },
                 { label: "Time Range", name: "time_range", type: "select", options: ["08:30-10:00", "10:15-11:45", "12:00-13:30", "14:00-15:30", "15:45-17:15"] },
@@ -140,7 +154,7 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 </label>
             ))}
 
-            {/* Faculty Type */}
+            {/* Faculty A */}
             <label className="flex flex-col">
                 Faculty Type:
                 <select
@@ -153,7 +167,6 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 </select>
             </label>
 
-            {/* Faculty Name - from backend */}
             <label className="flex flex-col">
                 Faculty Name:
                 <select
@@ -180,7 +193,6 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 </select>
             </label>
 
-            {/* Designation & Department (can be auto-filled but editable) */}
             <label className="flex flex-col">
                 Faculty Designation:
                 <input
@@ -228,22 +240,84 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 Is Lab?
             </label>
 
-            {/* Lab Time Range */}
+            {/* Lab Time */}
             {formData.is_lab && (
-                <label className="flex flex-col col-span-1 md:col-span-2">
-                    Lab Fixed Time Range:
-                    <input
-                        type="text"
-                        name="lab_fixed_time_range"
-                        value={formData.lab_fixed_time_range}
-                        onChange={handleChange}
-                        className="border p-2 rounded-md"
-                        placeholder="e.g. 08:30 AM - 11:30 AM"
-                    />
-                </label>
+                <>
+                    <label className="flex flex-col col-span-1 md:col-span-2">
+                        Lab Fixed Time Range:
+                        <input
+                            type="text"
+                            name="lab_fixed_time_range"
+                            value={formData.lab_fixed_time_range}
+                            onChange={handleChange}
+                            className="border p-2 rounded-md"
+                            placeholder="e.g. 08:30 AM - 11:30 AM"
+                        />
+                    </label>
+
+                    <label className="flex flex-col">
+                        Faculty B Type:
+                        <select
+                            value={facultyType2}
+                            onChange={(e) => setFacultyType2(e.target.value)}
+                            className="border p-2 rounded-md"
+                        >
+                            <option value="Internal">Internal</option>
+                            <option value="External">External</option>
+                        </select>
+                    </label>
+
+                    {/* Faculty B */}
+                    <label className="flex flex-col">
+                        Faculty B Name:
+                        <select
+                            name="faculty_name_2"
+                            value={formData.faculty_name_2}
+                            onChange={(e) => {
+                                const selectedName = e.target.value;
+                                setFormData((prev) => ({ ...prev, faculty_name_2: selectedName }));
+                                const selected = facultyOptions.find((f) => f.name === selectedName);
+                                if (selected) {
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        faculty_designation_2: selected.designation || "",
+                                        faculty_department_2: selected.department || "",
+                                    }));
+                                }
+                            }}
+                            className="border p-2 rounded-md"
+                        >
+                            <option value="">Select Faculty B</option>
+                            {facultyOptions2.map((f) => (
+                                <option key={f._id} value={f.name}>{f.name}</option>
+                            ))}
+
+                        </select>
+                    </label>
+
+                    <label className="flex flex-col">
+                        Faculty B Designation:
+                        <input
+                            name="faculty_designation_2"
+                            value={formData.faculty_designation_2}
+                            onChange={handleChange}
+                            className="border p-2 rounded-md"
+                        />
+                    </label>
+
+                    <label className="flex flex-col">
+                        Faculty B Department:
+                        <input
+                            name="faculty_department_2"
+                            value={formData.faculty_department_2}
+                            onChange={handleChange}
+                            className="border p-2 rounded-md"
+                        />
+                    </label>
+                </>
             )}
 
-            {/* Submit + Cancel */}
+            {/* Submit */}
             <div className="col-span-1 md:col-span-2 flex justify-between gap-4">
                 <button
                     type="submit"
@@ -267,8 +341,6 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 )}
             </div>
         </form>
-
-
     );
 }
 
