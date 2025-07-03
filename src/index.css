@@ -9,9 +9,12 @@ body {
   }
 
  @media print {
+  @page {
+    size: A4 portrait;
+    margin: 1cm;
+  }
+
   body {
-    margin: 0;
-    padding: 0;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -20,21 +23,41 @@ body {
     display: none !important;
   }
 
+  .print\:block {
+    display: block !important;
+  }
+
   .routine-grid {
     width: 100% !important;
   }
 
-  .routine-day {
+  .break-after-page {
     page-break-after: always;
   }
 
-  .routine-cell {
-    padding: 4px !important;
-    border: 1px solid #000 !important;
+  .text-sm {
+    font-size: 10px !important;
   }
 
-  .routine-head {
-    background-color: #e5e7eb !important;
-    font-weight: bold !important;
+  .text-md {
+    font-size: 12px !important;
+  }
+
+  .text-lg {
+    font-size: 14px !important;
+  }
+
+  .text-xl {
+    font-size: 16px !important;
+  }
+
+  h2 {
+    font-size: 14px !important;
+    font-weight: bold;
+  }
+
+    .avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "./api/axiosInstance";
+import PrintHeader from "./components/PrintHeader"; // adjust path if needed
+
 
 function PublicPage() {
   const [filters, setFilters] = useState({ day: "", faculty: "", batch: "", time: "" });
@@ -47,6 +49,15 @@ function PublicPage() {
     if (!groupedData[r.day][r.room][r.time_range]) groupedData[r.day][r.room][r.time_range] = [];
     groupedData[r.day][r.room][r.time_range].push(r);
   }
+
+//   const PrintHeader = () => (
+//   <div className="print-header print:block hidden text-center mb-4">
+//     <div style={{ fontSize: "16px", fontWeight: "bold" }}>BANGLADESH UNIVERSITY OF PROFESSIONALS (BUP)</div>
+//     <div style={{ fontSize: "14px" }}>DEPARTMENT OF ICT</div>
+//     <div style={{ fontSize: "13px" }}>CLASS ROUTINE (JULY–DECEMBER 2025)</div>
+//   </div>
+// );
+
 
   const batchColorMap = {
     "MICE-2024": "bg-indigo-100",
@@ -144,6 +155,8 @@ function PublicPage() {
         </div>
       </div>
 
+      <PrintHeader />
+
       {/* Routine Table */}
       <div className="mx-6 print:mx-2">
         {Object.entries(groupedData)
@@ -153,7 +166,8 @@ function PublicPage() {
             <div key={day} className="mb-12 break-after-page print:break-after-page">
               <h2 className="text-2xl font-semibold text-center text-slate-700 mb-5 border-b pb-2">{day}</h2>
               <div className="overflow-x-auto print:overflow-visible">
-                <div className="min-w-[1000px] grid grid-cols-[80px_repeat(5,1fr)] border border-slate-300 rounded-lg shadow-sm text-sm print:text-xs">
+                <div className="w-full grid grid-cols-[80px_repeat(5,1fr)] border border-slate-300 rounded-lg shadow-sm text-sm print:text-xs routine-grid">
+
                   {/* Time Headers */}
                   <div className="bg-slate-200 font-bold text-center p-2 border-r border-b border-slate-300">
                     Room
