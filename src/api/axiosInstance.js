@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "http://localhost:5000", // backend server
+  baseURL: "https://routine-management-server.onrender.com", // backend server
 });
 
 instance.interceptors.request.use((config) => {
