@@ -6,6 +6,7 @@ import SettingsPage from "./SettingsPage";
 import Sidebar from "../components/Sidebar";
 import axios from "../api/axiosInstance";
 import Swal from "sweetalert2";
+import AdminCoursePage from "./AdminCoursePage";
 
 function AdminPage() {
     const [activeTab, setActiveTab] = useState("add");
@@ -91,6 +92,7 @@ function AdminPage() {
                     )}
 
                     {activeTab === "faculties" && <AdminFacultyPage />}
+                    {activeTab === "courses" && <AdminCoursePage />}
 
                     {activeTab === "settings" && <SettingsPage />}
                 </div>

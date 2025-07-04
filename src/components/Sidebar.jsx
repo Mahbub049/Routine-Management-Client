@@ -1,5 +1,5 @@
 import React from "react";
-import { FaPlus, FaList, FaChalkboardTeacher, FaCog, FaPowerOff, FaGraduationCap } from "react-icons/fa";
+import { FaPlus, FaList, FaChalkboardTeacher, FaCog, FaPowerOff, FaGraduationCap, FaBook } from "react-icons/fa";
 import PublicPage from "../PublicPage";
 import { Link } from "react-router-dom";
 
@@ -21,6 +21,13 @@ function Sidebar({ activeTab, setActiveTab, onLogout, onSemesterEnd }) {
             <div onClick={() => setActiveTab("faculties")} className={tabClass("faculties")}>
                 <FaChalkboardTeacher className="mr-2" /> Manage Faculties
             </div>
+            <div
+                onClick={() => setActiveTab("courses")}
+                className={tabClass("courses")}
+            >
+                <FaBook className="mr-2" /> Create Course
+            </div>
+
             <div onClick={() => setActiveTab("settings")} className={tabClass("settings")}>
                 <FaCog className="mr-2" /> General Info
             </div>

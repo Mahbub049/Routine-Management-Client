@@ -26,6 +26,8 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
     const [facultyOptions, setFacultyOptions] = useState([]);
     const [facultyType2, setFacultyType2] = useState("Internal");
     const [facultyOptions2, setFacultyOptions2] = useState([]);
+    const [courses, setCourses] = useState([]);
+
 
     const [settings, setSettings] = useState({
         time_ranges: [],
@@ -77,6 +79,12 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
         fetchSettings();
     }, []);
 
+    useEffect(() => {
+        axios.get("/courses")
+            .then((res) => setCourses(res.data))
+            .catch((err) => console.error("Failed to fetch courses", err));
+    }, []);
+
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -117,6 +125,21 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
         try {
             setIsSubmitting(true);
 
+            // 🛑 Check for Room or Section Conflict
+            const params = new URLSearchParams({
+                day: formData.day,
+                time_range: formData.time_range,
+                room: formData.room,
+                section: formData.section,
+                batch: formData.batch,
+            });
+            if (editingData && editingData._id) {
+                params.append("currentId", editingData._id);
+            }
+
+            const conflictCheck = await axios.get(`/routines/check-conflict?${params.toString()}`);
+
+            // ✅ No conflict, proceed to save
             if (editingData && editingData._id) {
                 await axios.put(`/routines/${editingData._id}`, formData);
                 alert("Routine updated successfully!");
@@ -129,12 +152,18 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
             if (clearEdit) clearEdit();
             onSuccess();
         } catch (err) {
-            alert("Submission failed. Please try again.");
-            console.error(err);
+            if (err.response && err.response.status === 409) {
+                alert(`❌ Conflict: ${err.response.data.message}`);
+            } else {
+                alert("Submission failed. Please try again.");
+                console.error(err);
+            }
         } finally {
             setIsSubmitting(false);
         }
     };
+
+
 
     const formatTo12Hour = (range) => {
         const [start, end] = range.split("-");
@@ -158,8 +187,6 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 { label: "Time Range", name: "time_range", type: "select", options: settings.time_ranges },
                 { label: "Room", name: "room", type: "select", options: settings.classrooms },
                 { label: "Section", name: "section", type: "select", options: settings.sections },
-                { label: "Course Code", name: "course_code" },
-                { label: "Course Title", name: "course_title" },
             ].map(({ label, name, type = "text", options }) => (
                 <label key={name} className="flex flex-col">
                     {label}:
@@ -192,6 +219,54 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                     )}
                 </label>
             ))}
+
+            {/* Course Code dropdown + auto-filled Course Title + is_lab control */}
+            <label className="flex flex-col">
+                Course Code:
+                <select
+                    name="course_code"
+                    value={formData.course_code}
+                    onChange={(e) => {
+                        const selectedCode = e.target.value;
+                        const selectedCourse = courses.find(c => c.course_code === selectedCode);
+                        if (selectedCourse) {
+                            setFormData((prev) => ({
+                                ...prev,
+                                course_code: selectedCourse.course_code,
+                                course_title: selectedCourse.course_title,
+                                is_lab: selectedCourse.is_lab,
+                            }));
+                        } else {
+                            setFormData((prev) => ({
+                                ...prev,
+                                course_code: "",
+                                course_title: "",
+                                is_lab: false,
+                            }));
+                        }
+                    }}
+                    className="border p-2 rounded-md"
+                >
+                    <option value="">Select Course</option>
+                    {courses.map((course) => (
+                        <option key={course._id} value={course.course_code}>
+                            {course.course_code}
+                        </option>
+                    ))}
+                </select>
+            </label>
+
+            <label className="flex flex-col">
+                Course Title:
+                <input
+                    type="text"
+                    name="course_title"
+                    value={formData.course_title}
+                    readOnly
+                    className="border p-2 rounded-md bg-gray-100"
+                />
+            </label>
+
 
             {/* Faculty A */}
             <label className="flex flex-col">
