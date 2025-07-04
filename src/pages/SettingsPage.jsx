@@ -59,7 +59,7 @@ function SettingsPage() {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const res = await axios.get("http://localhost:5000/public-settings");
+                const res = await axios.get("/public-settings");
                 setGeneral({
                     university_name: res.data.university_name || "",
                     department_name: res.data.department_name || "",
