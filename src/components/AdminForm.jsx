@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "../api/axiosInstance";
+import Swal from "sweetalert2";
 
 const initialState = {
     day: "",
@@ -27,105 +28,152 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
     const [facultyType2, setFacultyType2] = useState("Internal");
     const [facultyOptions2, setFacultyOptions2] = useState([]);
     const [courses, setCourses] = useState([]);
-
-
     const [settings, setSettings] = useState({
         time_ranges: [],
         classrooms: [],
         sections: [],
     });
 
-
+    // Set editing data
     useEffect(() => {
         if (editingData) {
-            setFormData({
-                ...initialState,
-                ...editingData,
-                _id: editingData._id,
-            });
+            setFormData({ ...initialState, ...editingData, _id: editingData._id });
         } else {
             setFormData(initialState);
         }
     }, [editingData]);
 
+    // Fetch faculty A
     useEffect(() => {
-        axios.get("/faculties")
+        axios
+            .get("/faculties")
             .then((res) => {
-                const filtered = res.data.filter(fac => fac.type === facultyType);
+                const filtered = res.data.filter((fac) => fac.type === facultyType);
                 setFacultyOptions(filtered);
             })
             .catch((err) => console.error("Failed to fetch faculties", err));
     }, [facultyType]);
 
+    // Fetch faculty B
     useEffect(() => {
-        axios.get("/faculties")
+        axios
+            .get("/faculties")
             .then((res) => {
-                const filtered = res.data.filter(f => f.type === facultyType2);
+                const filtered = res.data.filter((fac) => fac.type === facultyType2);
                 setFacultyOptions2(filtered);
             })
             .catch((err) => console.error("Failed to fetch faculty B list", err));
     }, [facultyType2]);
 
+    // Fetch settings
     useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                const res = await axios.get("/settings"); // 🔐 Requires JWT
-                setSettings(res.data); // Save to state
-            } catch (err) {
-                console.error("Failed to fetch settings", err);
-            }
-        };
-
-        fetchSettings();
+        axios
+            .get("/settings")
+            .then((res) => {
+                setSettings({
+                    time_ranges: res.data.time_ranges || [],
+                    classrooms: res.data.classrooms || [],
+                    sections: res.data.sections || [],
+                });
+            })
+            .catch((err) => console.error("Failed to fetch settings", err));
     }, []);
 
+    // Fetch courses
     useEffect(() => {
-        axios.get("/courses")
-            .then((res) => setCourses(res.data))
+        axios
+            .get("/courses")
+            .then((res) => setCourses(res.data.courses || []))
             .catch((err) => console.error("Failed to fetch courses", err));
     }, []);
 
-
-    const handleChange = (e) => {
+    const handleChange = async (e) => {
         const { name, value, type, checked } = e.target;
+
+        // 👇 Custom logic when selecting a course title
+        if (name === "course_title") {
+            const selectedCourse = courses.find((course) => course.course_title === value);
+            if (selectedCourse) {
+                try {
+                    // Fetch full course info including is_lab
+                    const res = await axios.get(`/courses/${selectedCourse.course_code}`);
+                    const courseData = res.data;
+
+                    // Update course_code and is_lab in formData
+                    setFormData((prev) => ({
+                        ...prev,
+                        course_title: value,
+                        course_code: selectedCourse.course_code,
+                        is_lab: courseData.is_lab || false, // checkbox will reflect this
+                    }));
+                } catch (error) {
+                    console.error("❌ Failed to fetch course info:", error);
+                    // fallback to update course title & code only
+                    setFormData((prev) => ({
+                        ...prev,
+                        course_title: value,
+                        course_code: selectedCourse.course_code,
+                    }));
+                }
+            }
+            return; // Exit here
+        }
+
+        // Default behavior for all other fields
         setFormData((prev) => ({
             ...prev,
             [name]: type === "checkbox" ? checked : value,
         }));
     };
 
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         const requiredFields = [
-            "day", "time_range", "room", "section",
-            "course_code", "course_title",
-            "faculty_name", "faculty_designation",
-            "faculty_department", "batch"
+            "day",
+            "time_range",
+            "room",
+            "section",
+            "course_code",
+            "course_title",
+            "faculty_name",
+            "faculty_designation",
+            "faculty_department",
+            "batch",
         ];
 
         for (let field of requiredFields) {
             if (!formData[field]) {
-                alert(`Please fill in the "${field.replace("_", " ")}" field.`);
+                Swal.fire({
+                    title: "Incomplete!",
+                    text: `Please fill in the "${field.replace("_", " ")}" field.`,
+                    icon: "warning"
+                });
                 return;
             }
         }
 
         if (formData.is_lab) {
             if (!formData.lab_fixed_time_range) {
-                alert("Please specify lab fixed time range.");
+                Swal.fire({
+                    title: "Incomplete!",
+                    text: `Please specify lab fixed time range.`,
+                    icon: "warning"
+                });
                 return;
             }
             if (!formData.faculty_name_2) {
-                alert("Please select Faculty B for lab course.");
+                Swal.fire({
+                    title: "Incomplete!",
+                    text: `Please select Faculty B for lab course.`,
+                    icon: "warning"
+                });
                 return;
             }
         }
 
         try {
             setIsSubmitting(true);
-
-            // 🛑 Check for Room or Section Conflict
             const params = new URLSearchParams({
                 day: formData.day,
                 time_range: formData.time_range,
@@ -133,37 +181,53 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 section: formData.section,
                 batch: formData.batch,
             });
+
             if (editingData && editingData._id) {
                 params.append("currentId", editingData._id);
             }
 
-            const conflictCheck = await axios.get(`/routines/check-conflict?${params.toString()}`);
+            await axios.get(`/routines/check-conflict?${params.toString()}`);
 
-            // ✅ No conflict, proceed to save
             if (editingData && editingData._id) {
                 await axios.put(`/routines/${editingData._id}`, formData);
-                alert("Routine updated successfully!");
+                Swal.fire({
+                    title: "Updated!",
+                    text: `Routine updated successfully!`,
+                    icon: "success"
+                });
+
             } else {
                 await axios.post("/routines", formData);
-                alert("Routine added successfully!");
+                Swal.fire({
+                    title: "Updated!",
+                    text: `Routine added successfully!`,
+                    icon: "success"
+                });
+
             }
 
             setFormData(initialState);
-            if (clearEdit) clearEdit();
+            clearEdit?.();
             onSuccess();
         } catch (err) {
-            if (err.response && err.response.status === 409) {
-                alert(`❌ Conflict: ${err.response.data.message}`);
+            if (err.response?.status === 409) {
+                Swal.fire({
+                    title: "Not Applicable!",
+                    text: `❌ Conflict: ${err.response.data.message}`,
+                    icon: "error"
+                });
             } else {
-                alert("Submission failed. Please try again.");
+                Swal.fire({
+                    title: "Not Applicable!",
+                    text: `Submission failed. Please try again.`,
+                    icon: "error"
+                });
                 console.error(err);
             }
         } finally {
             setIsSubmitting(false);
         }
     };
-
-
 
     const formatTo12Hour = (range) => {
         const [start, end] = range.split("-");
@@ -175,72 +239,62 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
         let hour = parseInt(hourStr, 10);
         const suffix = hour >= 12 ? "PM" : "AM";
         hour = hour % 12 || 12;
-        return `${hour.toString().padStart(2, '0')}:${minuteStr}${suffix}`;
+        return `${hour.toString().padStart(2, "0")}:${minuteStr}${suffix}`;
     };
-
 
     return (
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Day, Time, Room, Section, Course Info */}
             {[
-                { label: "Day", name: "day", type: "select", options: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"] },
-                { label: "Time Range", name: "time_range", type: "select", options: settings.time_ranges },
-                { label: "Room", name: "room", type: "select", options: settings.classrooms },
-                { label: "Section", name: "section", type: "select", options: settings.sections },
-            ].map(({ label, name, type = "text", options }) => (
+                { label: "Day", name: "day", options: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"] },
+                { label: "Time Range", name: "time_range", options: settings.time_ranges },
+                { label: "Room", name: "room", options: settings.classrooms },
+                { label: "Section", name: "section", options: settings.sections },
+            ].map(({ label, name, options }) => (
                 <label key={name} className="flex flex-col">
                     {label}:
-                    {type === "select" ? (
-                        <select
-                            name={name}
-                            value={formData[name]}
-                            onChange={handleChange}
-                            className="border p-2 rounded-md"
-                        >
-                            <option value="">Select</option>
-                            {label === "Time Range"
-                                ? options.map((opt) => (
-                                    <option key={opt} value={opt}>{formatTo12Hour(opt)}</option>
-                                ))
-                                : options.map((opt) => (
-                                    <option key={opt} value={opt}>{opt}</option>
-                                ))
-                            }
-                        </select>
-
-                    ) : (
-                        <input
-                            type={type}
-                            name={name}
-                            value={formData[name]}
-                            onChange={handleChange}
-                            className="border p-2 rounded-md"
-                        />
-                    )}
+                    <select
+                        name={name}
+                        value={formData[name]}
+                        onChange={handleChange}
+                        className="border p-2 rounded-md"
+                    >
+                        <option value="">Select</option>
+                        {options.map((opt) =>
+                            label === "Time Range" ? (
+                                <option key={opt} value={opt}>
+                                    {formatTo12Hour(opt)}
+                                </option>
+                            ) : (
+                                <option key={opt} value={opt}>
+                                    {opt}
+                                </option>
+                            )
+                        )}
+                    </select>
                 </label>
             ))}
 
-            {/* Course Code dropdown + auto-filled Course Title + is_lab control */}
+            {/* Course Title Dropdown */}
             <label className="flex flex-col">
-                Course Code:
+                Course Title:
                 <select
-                    name="course_code"
-                    value={formData.course_code}
+                    name="course_title"
+                    value={formData.course_title}
                     onChange={(e) => {
-                        const selectedCode = e.target.value;
-                        const selectedCourse = courses.find(c => c.course_code === selectedCode);
+                        const selectedTitle = e.target.value;
+                        const selectedCourse = courses.find((c) => c.course_title === selectedTitle);
                         if (selectedCourse) {
                             setFormData((prev) => ({
                                 ...prev,
-                                course_code: selectedCourse.course_code,
                                 course_title: selectedCourse.course_title,
-                                is_lab: selectedCourse.is_lab,
+                                course_code: selectedCourse.course_code,
+                                is_lab: selectedCourse.is_lab ?? false,
                             }));
                         } else {
                             setFormData((prev) => ({
                                 ...prev,
-                                course_code: "",
                                 course_title: "",
+                                course_code: "",
                                 is_lab: false,
                             }));
                         }
@@ -249,33 +303,28 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 >
                     <option value="">Select Course</option>
                     {courses.map((course) => (
-                        <option key={course._id} value={course.course_code}>
-                            {course.course_code}
+                        <option key={course._id} value={course.course_title}>
+                            {course.course_title}
                         </option>
                     ))}
                 </select>
             </label>
 
             <label className="flex flex-col">
-                Course Title:
+                Course Code:
                 <input
                     type="text"
-                    name="course_title"
-                    value={formData.course_title}
+                    name="course_code"
+                    value={formData.course_code}
                     readOnly
                     className="border p-2 rounded-md bg-gray-100"
                 />
             </label>
 
-
             {/* Faculty A */}
             <label className="flex flex-col">
                 Faculty Type:
-                <select
-                    value={facultyType}
-                    onChange={(e) => setFacultyType(e.target.value)}
-                    className="border p-2 rounded-md"
-                >
+                <select value={facultyType} onChange={(e) => setFacultyType(e.target.value)} className="border p-2 rounded-md">
                     <option value="Internal">Internal</option>
                     <option value="External">External</option>
                 </select>
@@ -287,74 +336,59 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                     name="faculty_name"
                     value={formData.faculty_name}
                     onChange={(e) => {
-                        const selectedName = e.target.value;
-                        setFormData((prev) => ({ ...prev, faculty_name: selectedName }));
-                        const selected = facultyOptions.find((f) => f.name === selectedName);
-                        if (selected) {
-                            setFormData((prev) => ({
-                                ...prev,
-                                faculty_designation: selected.designation || "",
-                                faculty_department: selected.department || "",
-                            }));
-                        }
+                        const selected = facultyOptions.find((f) => f.name === e.target.value);
+                        setFormData((prev) => ({
+                            ...prev,
+                            faculty_name: selected?.name || "",
+                            faculty_designation: selected?.designation || "",
+                            faculty_department: selected?.department || "",
+                        }));
                     }}
                     className="border p-2 rounded-md"
                 >
                     <option value="">Select Faculty</option>
                     {facultyOptions.map((f) => (
-                        <option key={f._id} value={f.name}>{f.name}</option>
+                        <option key={f._id} value={f.name}>
+                            {f.name}
+                        </option>
                     ))}
                 </select>
             </label>
 
             <label className="flex flex-col">
                 Faculty Designation:
-                <input
-                    name="faculty_designation"
-                    value={formData.faculty_designation}
-                    onChange={handleChange}
-                    className="border p-2 rounded-md"
-                />
+                <input name="faculty_designation" value={formData.faculty_designation} onChange={handleChange} className="border p-2 rounded-md" />
             </label>
 
             <label className="flex flex-col">
                 Faculty Department:
-                <input
-                    name="faculty_department"
-                    value={formData.faculty_department}
-                    onChange={handleChange}
-                    className="border p-2 rounded-md"
-                />
+                <input name="faculty_department" value={formData.faculty_department} onChange={handleChange} className="border p-2 rounded-md" />
             </label>
 
             {/* Batch */}
             <label className="flex flex-col">
                 Batch:
-                <select
-                    name="batch"
-                    value={formData.batch}
-                    onChange={handleChange}
-                    className="border p-2 rounded-md"
-                >
+                <select name="batch" value={formData.batch} onChange={handleChange} className="border p-2 rounded-md">
                     <option value="">Select</option>
                     {["BICE-2021", "BICE-2022", "BICE-2023", "BICE-2024", "BICE-2025", "MICE-2024"].map((opt) => (
-                        <option key={opt} value={opt}>{opt}</option>
+                        <option key={opt} value={opt}>
+                            {opt}
+                        </option>
                     ))}
                 </select>
             </label>
 
-            {/* Is Lab */}
+            {/* Is Lab Checkbox */}
             <label className="flex items-center gap-2 col-span-1 md:col-span-2">
                 <input
                     type="checkbox"
-                    name="is_lab"
                     checked={formData.is_lab}
-                    onChange={handleChange}
+                    onChange={(e) => setFormData({ ...formData, is_lab: e.target.checked })}
                 />
+
                 Is Lab?
             </label>
 
-            {/* Lab Time */}
             {formData.is_lab && (
                 <>
                     <label className="flex flex-col col-span-1 md:col-span-2">
@@ -369,74 +403,57 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                         />
                     </label>
 
+                    {/* Faculty B */}
                     <label className="flex flex-col">
                         Faculty B Type:
-                        <select
-                            value={facultyType2}
-                            onChange={(e) => setFacultyType2(e.target.value)}
-                            className="border p-2 rounded-md"
-                        >
+                        <select value={facultyType2} onChange={(e) => setFacultyType2(e.target.value)} className="border p-2 rounded-md">
                             <option value="Internal">Internal</option>
                             <option value="External">External</option>
                         </select>
                     </label>
 
-                    {/* Faculty B */}
                     <label className="flex flex-col">
                         Faculty B Name:
                         <select
                             name="faculty_name_2"
                             value={formData.faculty_name_2}
                             onChange={(e) => {
-                                const selectedName = e.target.value;
-                                setFormData((prev) => ({ ...prev, faculty_name_2: selectedName }));
-                                const selected = facultyOptions.find((f) => f.name === selectedName);
-                                if (selected) {
-                                    setFormData((prev) => ({
-                                        ...prev,
-                                        faculty_designation_2: selected.designation || "",
-                                        faculty_department_2: selected.department || "",
-                                    }));
-                                }
+                                const selected = facultyOptions2.find((f) => f.name === e.target.value);
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    faculty_name_2: selected?.name || "",
+                                    faculty_designation_2: selected?.designation || "",
+                                    faculty_department_2: selected?.department || "",
+                                }));
                             }}
                             className="border p-2 rounded-md"
                         >
                             <option value="">Select Faculty B</option>
                             {facultyOptions2.map((f) => (
-                                <option key={f._id} value={f.name}>{f.name}</option>
+                                <option key={f._id} value={f.name}>
+                                    {f.name}
+                                </option>
                             ))}
-
                         </select>
                     </label>
 
                     <label className="flex flex-col">
                         Faculty B Designation:
-                        <input
-                            name="faculty_designation_2"
-                            value={formData.faculty_designation_2}
-                            onChange={handleChange}
-                            className="border p-2 rounded-md"
-                        />
+                        <input name="faculty_designation_2" value={formData.faculty_designation_2} onChange={handleChange} className="border p-2 rounded-md" />
                     </label>
 
                     <label className="flex flex-col">
                         Faculty B Department:
-                        <input
-                            name="faculty_department_2"
-                            value={formData.faculty_department_2}
-                            onChange={handleChange}
-                            className="border p-2 rounded-md"
-                        />
+                        <input name="faculty_department_2" value={formData.faculty_department_2} onChange={handleChange} className="border p-2 rounded-md" />
                     </label>
                 </>
             )}
 
-            {/* Submit */}
             <div className="col-span-1 md:col-span-2 flex justify-between gap-4">
                 <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`bg-indigo-600 text-white px-4 py-2 rounded ${isSubmitting ? "opacity-50 cursor-not-allowed" : "hover:bg-indigo-700"}`}
+                    className={`bg-indigo-600 text-white px-4 py-2 rounded ${isSubmitting ? "opacity-50" : "hover:bg-indigo-700"}`}
                 >
                     {isSubmitting ? "Submitting..." : editingData ? "Update Routine" : "Submit Routine"}
                 </button>

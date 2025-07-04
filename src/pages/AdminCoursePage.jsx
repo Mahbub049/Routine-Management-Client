@@ -8,30 +8,45 @@ function AdminCoursePage() {
         credit_hour: "",
         is_lab: false,
     });
-    const [courses, setCourses] = useState([]);
+    const [courses, setCourses] = useState([]); // ✅ NOT null or object
+
     const [editingId, setEditingId] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCourses, setTotalCourses] = useState(0);
+    const coursesPerPage = 10;
+
 
     // Fetch all courses
     useEffect(() => {
         fetchCourses();
+        console.log("courses:", courses);
     }, []);
 
-    const fetchCourses = async () => {
+    const fetchCourses = async (page = 1) => {
         try {
-            const res = await axios.get("/courses");
+            const res = await axios.get(`/courses?page=${page}&limit=${coursesPerPage}`);
+            const coursesArray = Array.isArray(res.data) ? res.data : res.data.courses;
 
-            // Custom sort based on numeric part of course_code
-            const sorted = res.data.sort((a, b) => {
-                const numA = parseInt(a.course_code.split("-")[1]);
-                const numB = parseInt(b.course_code.split("-")[1]);
-                return numA - numB;
-            });
+            const sorted = Array.isArray(coursesArray)
+                ? coursesArray.sort((a, b) => {
+                    const numA = parseInt(a.course_code?.split("-")[1] || "0");
+                    const numB = parseInt(b.course_code?.split("-")[1] || "0");
+                    return numA - numB;
+                })
+                : [];
 
             setCourses(sorted);
+            setTotalCourses(res.data.total || sorted.length); // fallback if no total
+            setCurrentPage(page);
         } catch (err) {
-            console.error("Error fetching courses", err);
+            console.error("❌ Error fetching courses:", err);
+            setCourses([]);
         }
     };
+
+
+
+
 
     const handleSubmit = async () => {
         try {
@@ -50,7 +65,8 @@ function AdminCoursePage() {
                 is_lab: false,
             });
             setEditingId(null);
-            fetchCourses();
+            fetchCourses(1);
+
         } catch (err) {
             alert("Error saving course");
             console.error(err);
@@ -71,7 +87,8 @@ function AdminCoursePage() {
         if (!window.confirm("Are you sure you want to delete this course?")) return;
         try {
             await axios.delete(`/courses/${id}`);
-            fetchCourses();
+            fetchCourses(1);
+
         } catch (err) {
             alert("Error deleting course");
             console.error(err);
@@ -168,6 +185,29 @@ function AdminCoursePage() {
                     ))}
                 </tbody>
             </table>
+            {/* Pagination Controls */}
+            <div className="mt-4 flex justify-center items-center gap-4">
+                <button
+                    onClick={() => fetchCourses(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded disabled:opacity-50"
+                >
+                    ⬅️ Prev
+                </button>
+
+                <span className="text-sm font-medium">
+                    Page {currentPage} of {Math.ceil(totalCourses / coursesPerPage)}
+                </span>
+
+                <button
+                    onClick={() => fetchCourses(currentPage + 1)}
+                    disabled={currentPage >= Math.ceil(totalCourses / coursesPerPage)}
+                    className="px-3 py-1 bg-gray-300 hover:bg-gray-400 rounded disabled:opacity-50"
+                >
+                    Next ➡️
+                </button>
+            </div>
+
         </div>
     );
 }
