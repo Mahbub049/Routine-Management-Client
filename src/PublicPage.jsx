@@ -179,47 +179,53 @@ function PublicPage() {
                   ))}
 
                   {/* Rows per Room */}
-                  {(settings.classrooms || []).map(room => {
-                    const slots = rooms[room] || {};
-                    return (
-                      <React.Fragment key={room}>
-                        <div className="text-center border-t border-r border-slate-300 bg-slate-100 font-medium p-2">
-                          {room}
-                        </div>
-                        {timeOptions.map((slot) => (
-                          <div
-                            key={slot}
-                            className="border-t border-r border-slate-300 p-1 space-y-1 align-top"
-                          >
-                            {(slots[slot] || []).map((r, i) => (
-                              <div
-                                key={i}
-                                className={`rounded p-1 shadow-sm transition duration-150 hover:shadow-md ${batchColorMap[r.batch] || "bg-white"}`}
-                              >
-                                <div className="font-semibold text-slate-800">
-                                  {r.course_code}-{r.section}
-                                  {r.is_lab && r.lab_fixed_time_range ? (
-                                    <span className="block text-xs text-gray-600 mt-0.5">
-                                      ({r.lab_fixed_time_range})
-                                    </span>
-                                  ) : null}
-                                </div>
-                                <div className="text-gray-500 font-bold text-sm">{r.course_title}</div>
-                                <div className="text-slate-700 text-sm">
-                                  {r.is_lab && r.faculty_name_1 && r.faculty_name_2
-                                    ? `${r.faculty_name_1} + ${r.faculty_name_2}`
-                                    : r.faculty_name}
-                                </div>
-                                <div className="italic text-right text-xs text-slate-600">
-                                  {r.batch}
-                                </div>
-                              </div>
-                            ))}
+                  {(settings.classrooms || [])
+                    .filter((room) => {
+                      const slots = rooms[room] || {};
+                      return Object.values(slots).some(slotEntries => slotEntries.length > 0);
+                    })
+                    .map(room => {
+                      const slots = rooms[room] || {};
+                      return (
+                        <React.Fragment key={room}>
+                          <div className="text-center border-t border-r border-slate-300 bg-slate-100 font-medium p-2">
+                            {room}
                           </div>
-                        ))}
-                      </React.Fragment>
-                    );
-                  })}
+                          {timeOptions.map((slot) => (
+                            <div
+                              key={slot}
+                              className="border-t border-r border-slate-300 p-1 space-y-1 align-top"
+                            >
+                              {(slots[slot] || []).map((r, i) => (
+                                <div
+                                  key={i}
+                                  className={`rounded p-1 shadow-sm transition duration-150 hover:shadow-md ${batchColorMap[r.batch] || "bg-white"}`}
+                                >
+                                  <div className="font-semibold text-slate-800">
+                                    {r.course_code}-{r.section}
+                                    {r.is_lab && r.lab_fixed_time_range ? (
+                                      <span className="block text-xs text-gray-600 mt-0.5">
+                                        ({r.lab_fixed_time_range})
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                  <div className="text-gray-500 font-bold text-sm">{r.course_title}</div>
+                                  <div className="text-slate-700 text-sm">
+                                    {r.is_lab && r.faculty_name_1 && r.faculty_name_2
+                                      ? `${r.faculty_name_1} + ${r.faculty_name_2}`
+                                      : r.faculty_name}
+                                  </div>
+                                  <div className="italic text-right text-xs text-slate-600">
+                                    {r.batch}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </React.Fragment>
+                      );
+                    })}
+
                 </div>
               </div>
             </div>
