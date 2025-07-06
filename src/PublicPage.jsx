@@ -20,7 +20,14 @@ function PublicPage() {
       .catch((err) => console.error("Error fetching public settings:", err));
   }, []);
 
-  const timeOptions = settings.time_ranges || [];
+  const timeOptions = (settings.time_ranges || []).sort((a, b) => {
+    const getMinutes = (t) => {
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m;
+    };
+    return getMinutes(a.split("-")[0]) - getMinutes(b.split("-")[0]);
+  });
+
 
   const convertTo12HourRange = (range) => {
     const [start, end] = range.split("-");
