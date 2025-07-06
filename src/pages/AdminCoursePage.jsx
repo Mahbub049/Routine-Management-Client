@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "../api/axiosInstance";
+import Swal from "sweetalert2";
 
 function AdminCoursePage() {
     const [course, setCourse] = useState({
@@ -52,10 +53,10 @@ function AdminCoursePage() {
         try {
             if (editingId) {
                 await axios.put(`/courses/${editingId}`, course);
-                alert("Course updated!");
+                // alert("Course updated!");
             } else {
                 await axios.post("/courses", course);
-                alert("Course added!");
+                // alert("Course added!");
             }
 
             setCourse({
@@ -68,7 +69,11 @@ function AdminCoursePage() {
             fetchCourses(1);
 
         } catch (err) {
-            alert("Error saving course");
+            Swal.fire({
+                title: "Error!",
+                text: "Error saving course",
+                icon: "error",
+            });
             console.error(err);
         }
     };
@@ -91,6 +96,11 @@ function AdminCoursePage() {
 
         } catch (err) {
             alert("Error deleting course");
+            Swal.fire({
+                title: "Error!",
+                text: "Error deleting course",
+                icon: "error",
+            });
             console.error(err);
         }
     };
