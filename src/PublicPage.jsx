@@ -184,10 +184,10 @@ function PublicPage() {
                       const slots = rooms[room] || {};
                       return Object.values(slots).some(slotEntries => slotEntries.length > 0);
                     })
-                    .map(room => {
+                    .map((room) => {
                       const slots = rooms[room] || {};
                       return (
-                        <React.Fragment key={room}>
+                        <div className="avoid-break contents" key={room}>
                           <div className="text-center border-t border-r border-slate-300 bg-slate-100 font-medium p-2">
                             {room}
                           </div>
@@ -222,9 +222,10 @@ function PublicPage() {
                               ))}
                             </div>
                           ))}
-                        </React.Fragment>
+                        </div>
                       );
-                    })}
+                    })
+                  }
 
                 </div>
               </div>

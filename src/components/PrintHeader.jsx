@@ -38,13 +38,15 @@ function PrintHeader() {
 
       {/* ✅ Colored Batch Row */}
       <div
-        className={`grid border border-black text-black text-sm font-semibold`}
+        className="grid border border-black text-black text-sm font-semibold"
         style={{ gridTemplateColumns: `repeat(${batches.length}, minmax(0, 1fr))` }}
       >
+
         {batches.map((batch, idx) => (
           <div
             key={idx}
             className={`py-1 border-r border-black text-center ${bgColorClasses[idx % bgColorClasses.length]}`}
+
           >
             {batch}
           </div>

@@ -83,9 +83,13 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
     useEffect(() => {
         axios
             .get("/courses")
-            .then((res) => setCourses(res.data.courses || []))
+            .then((res) => {
+                const coursesArray = Array.isArray(res.data) ? res.data : res.data.courses;
+                setCourses(coursesArray || []);
+            })
             .catch((err) => console.error("Failed to fetch courses", err));
     }, []);
+
 
     const handleChange = async (e) => {
         const { name, value, type, checked } = e.target;
