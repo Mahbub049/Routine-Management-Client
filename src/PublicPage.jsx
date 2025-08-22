@@ -63,14 +63,26 @@ function PublicPage() {
     groupedData[r.day][r.room][r.time_range].push(r);
   }
 
-  const batchColorMap = {
-    "MICE-2024": "bg-indigo-100",
-    "BICE-2021": "bg-red-100",
-    "BICE-2022": "bg-orange-100",
-    "BICE-2023": "bg-amber-100",
-    "BICE-2024": "bg-green-100",
-    "BICE-2025": "bg-blue-100"
-  };
+  // Define a fixed palette of Tailwind background classes
+  const colors = [
+    "bg-red-100",
+    "bg-orange-100",
+    "bg-amber-100",
+    "bg-green-100",
+    "bg-blue-100",
+    "bg-indigo-100",
+    "bg-purple-100",
+    "bg-pink-100",
+    "bg-teal-100",
+    "bg-lime-100"
+  ];
+
+  // Dynamically build color map from settings.batches
+  const batchColorMap = {};
+  (settings.batches || []).forEach((batch, index) => {
+    batchColorMap[batch] = colors[index % colors.length]; // wrap around if more batches than colors
+  });
+
 
   const dayOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"];
 
