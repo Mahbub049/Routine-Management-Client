@@ -28,6 +28,7 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
     const [facultyType2, setFacultyType2] = useState("Internal");
     const [facultyOptions2, setFacultyOptions2] = useState([]);
     const [courses, setCourses] = useState([]);
+    const [batches, setBatches] = useState([]);
     const [settings, setSettings] = useState({
         time_ranges: [],
         classrooms: [],
@@ -87,6 +88,17 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
             .catch((err) => console.error("Failed to fetch courses", err));
     }, []);
 
+    useEffect(() => {
+        const fetchBatches = async () => {
+            try {
+                const res = await axios.get("/settings");
+                setBatches(res.data.batches || []);
+            } catch (err) {
+                console.error("Failed to fetch batches", err);
+            }
+        };
+        fetchBatches();
+    }, []);
 
 
     const handleChange = async (e) => {
@@ -367,12 +379,16 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
                 <input name="faculty_department" value={formData.faculty_department} onChange={handleChange} className="border p-2 rounded-md" />
             </label>
 
-            {/* Batch */}
             <label className="flex flex-col">
                 Batch:
-                <select name="batch" value={formData.batch} onChange={handleChange} className="border p-2 rounded-md">
+                <select
+                    name="batch"
+                    value={formData.batch}
+                    onChange={handleChange}
+                    className="border p-2 rounded-md"
+                >
                     <option value="">Select</option>
-                    {["BICE-2021", "BICE-2022", "BICE-2023", "BICE-2024", "BICE-2025", "MICE-2024"].map((opt) => (
+                    {batches.map((opt) => (
                         <option key={opt} value={opt}>
                             {opt}
                         </option>
