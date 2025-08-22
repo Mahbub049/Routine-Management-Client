@@ -82,13 +82,11 @@ function AdminForm({ onSuccess, editingData, clearEdit }) {
     // Fetch courses
     useEffect(() => {
         axios
-            .get("/courses")
-            .then((res) => {
-                const coursesArray = Array.isArray(res.data) ? res.data : res.data.courses;
-                setCourses(coursesArray || []);
-            })
+            .get("/courses/all")
+            .then((res) => setCourses(res.data || []))
             .catch((err) => console.error("Failed to fetch courses", err));
     }, []);
+
 
 
     const handleChange = async (e) => {
