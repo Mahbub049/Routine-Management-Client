@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  FaTachometerAlt,
   FaPlus,
   FaList,
   FaChalkboardTeacher,
@@ -11,83 +12,58 @@ import {
 import { Link } from "react-router-dom";
 
 function Sidebar({ activeTab, setActiveTab, onLogout, onSemesterEnd }) {
-  const baseItem =
-    "flex items-center w-full px-4 py-3 rounded-lg transition text-sm";
-  const activeItem = "bg-indigo-600 text-white shadow";
-  const idleItem = "text-slate-700 hover:bg-slate-100";
-
-  const TabButton = ({ tab, icon: Icon, children }) => (
-    <button
-      type="button"
-      onClick={() => setActiveTab(tab)}
-      className={`${baseItem} ${activeTab === tab ? activeItem : idleItem}`}
-      aria-current={activeTab === tab ? "page" : undefined}
-    >
-      <Icon className="mr-2 shrink-0" />
-      <span className="truncate">{children}</span>
-    </button>
-  );
+  const tabClass = (tab) =>
+    `flex items-center px-4 py-3 cursor-pointer rounded-lg transition ${
+      activeTab === tab
+        ? "bg-indigo-600 text-white"
+        : "text-slate-700 hover:bg-slate-100"
+    }`;
 
   return (
-    <aside className="w-64 bg-white shadow-md p-4 flex flex-col min-h-screen">
-      {/* Brand */}
-      <h2 className="text-2xl font-bold text-slate-800 mb-4 text-center">
-        Admin Panel
-      </h2>
+    <div className="w-64 min-h-screen bg-white shadow-md p-4 space-y-2">
+      <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">Admin Panel</h2>
 
-      {/* Nav group */}
-      <div className="space-y-2">
-        <TabButton tab="add" icon={FaPlus}>
-          Add Routine
-        </TabButton>
-        <TabButton tab="view" icon={FaList}>
-          View All Routines
-        </TabButton>
-        <TabButton tab="faculties" icon={FaChalkboardTeacher}>
-          Manage Faculties
-        </TabButton>
-        <TabButton tab="courses" icon={FaBook}>
-          Create Course
-        </TabButton>
-        <TabButton tab="settings" icon={FaCog}>
-          General Info
-        </TabButton>
+      <div onClick={() => setActiveTab("dashboard")} className={tabClass("dashboard")}>
+        <FaTachometerAlt className="mr-2" /> Dashboard
       </div>
 
-      {/* Public link */}
-      <div className="mt-4">
-        <Link
-          to="/"
-          className="flex items-center px-4 py-3 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition text-sm"
-        >
-          <FaGraduationCap className="mr-2" />
-          View Class Routine
-        </Link>
+      <div onClick={() => setActiveTab("add")} className={tabClass("add")}>
+        <FaPlus className="mr-2" /> Add Routine
+      </div>
+      <div onClick={() => setActiveTab("view")} className={tabClass("view")}>
+        <FaList className="mr-2" /> View All Routines
+      </div>
+      <div onClick={() => setActiveTab("faculties")} className={tabClass("faculties")}>
+        <FaChalkboardTeacher className="mr-2" /> Manage Faculties
+      </div>
+      <div onClick={() => setActiveTab("courses")} className={tabClass("courses")}>
+        <FaBook className="mr-2" /> Create Course
+      </div>
+      <div onClick={() => setActiveTab("settings")} className={tabClass("settings")}>
+        <FaCog className="mr-2" /> General Info
       </div>
 
-      {/* Footer actions (global) */}
-      <div className="mt-auto space-y-2 pt-6">
-        <button
-          type="button"
-          onClick={onSemesterEnd}
-          className="w-full px-4 py-3 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 transition text-sm"
-        >
-          <span className="inline-flex items-center">
-            <FaGraduationCap className="mr-2" /> Semester End
-          </span>
-        </button>
+      <Link
+        to="/"
+        className="flex items-center px-4 py-3 rounded-lg bg-green-500 text-white hover:bg-green-600 transition duration-200"
+      >
+        <FaGraduationCap className="mr-2" />
+        View Class Routine
+      </Link>
 
-        <button
-          type="button"
-          onClick={onLogout}
-          className="w-full px-4 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 transition text-sm"
-        >
-          <span className="inline-flex items-center">
-            <FaPowerOff className="mr-2" /> Logout
-          </span>
-        </button>
+      <div
+        onClick={onSemesterEnd}
+        className="flex items-center px-4 py-3 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 cursor-pointer"
+      >
+        <FaGraduationCap className="mr-2" /> Semester End
       </div>
-    </aside>
+      <div
+        onClick={onLogout}
+        className="flex items-center px-4 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 cursor-pointer mt-2"
+      >
+        <FaPowerOff className="mr-2" /> Logout
+      </div>
+    </div>
   );
 }
 
