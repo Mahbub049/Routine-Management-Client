@@ -8,56 +8,44 @@ body {
     font-family: 'Montserrat', sans-serif;
   }
 
- @media print {
+/* ===== Print tuning ===== */
+@media print {
+
+  /* Force page to A4 portrait; switch to 'landscape' if you prefer */
   @page {
     size: A4 portrait;
-    margin: 1cm;
+    margin: 10mm;
   }
 
-  body {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .print\:hidden {
-    display: none !important;
-  }
-
-  .print\:block {
-    display: block !important;
-  }
-
-  .routine-grid {
+  /* Make the app span the full page */
+  .print-container {
     width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  .break-after-page {
-    page-break-after: always;
+  /* Remove UI shadows/borders that waste ink/space */
+  .print-clean {
+    box-shadow: none !important;
+    border-width: 1px !important;
   }
 
-  .text-sm {
-    font-size: 10px !important;
+  /* Make sticky things static on paper */
+  .print-static {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
   }
 
-  .text-md {
-    font-size: 12px !important;
+  /* Slightly smaller text for dense schedules */
+  .print-text-xs {
+    font-size: 11px !important;
+    line-height: 1.1 !important;
   }
 
-  .text-lg {
-    font-size: 14px !important;
-  }
-
-  .text-xl {
-    font-size: 16px !important;
-  }
-
-  h2 {
-    font-size: 14px !important;
-    font-weight: bold;
-  }
-
-    .avoid-break {
-    break-inside: avoid;
-    page-break-inside: avoid;
+  /* Tighter grid columns on paper (uses --slots set inline) */
+  .routine-grid {
+    grid-template-columns: 96px repeat(var(--slots, 5), minmax(150px, 1fr)) !important;
   }
 }
